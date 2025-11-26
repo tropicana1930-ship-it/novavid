@@ -12,3 +12,4 @@ build/
 # Archivos de Electron y caché
 *.asar
 .electron-builder
+node_modules/
