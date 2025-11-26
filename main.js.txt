@@ -1,0 +1,2 @@
+// main.js — launcher que delega a electron/main.js
+import './electron/main.js';
