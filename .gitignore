@@ -1,0 +1,14 @@
+# Directorio de dependencias
+node_modules/
+
+# Archivos de entorno y logs
+.env
+npm-debug.log*
+
+# Archivos de build y empaquetado
+dist/
+build/
+
+# Archivos de Electron y caché
+*.asar
+.electron-builder
