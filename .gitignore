@@ -1,15 +1,24 @@
-# Directorio de dependencias
+# Node / Vite / Electron
 node_modules/
-
-# Archivos de entorno y logs
-.env
-npm-debug.log*
-
-# Archivos de build y empaquetado
 dist/
+out/
 build/
+release/
 
-# Archivos de Electron y caché
-*.asar
-.electron-builder
-node_modules/
+# Local env (CRÍTICO: Claves y credenciales)
+.env
+.env.local
+.env.*.local
+
+# Editor & OS
+.vscode/
+.idea/
+*.log
+*.bak
+.DS_Store
+Thumbs.db
+
+# Package locks (Ignorados selectivamente)
+package-lock.json
+pnpm-lock.yaml
+yarn.lock

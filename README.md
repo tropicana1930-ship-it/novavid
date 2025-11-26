@@ -1,21 +1,26 @@
-# NovaVid - instrucciones rápidas
+# 🎬 NovaVid — Editor multiplataforma (Web + Windows)
 
-## Preparar
-1. Copia `.env.example` a `.env` y rellena `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY`.
-2. Instalar dependencias:
-   npm install
+NovaVid es una aplicación moderna para edición de video, disponible como:
+- **PWA (Web App)**
+- **App de escritorio para Windows (Electron)**
 
-## Desarrollo (web)
-   npm run dev
-Visita http://localhost:3000
+Su objetivo es permitir edición rápida, IA integrada y exportaciones rápidas, todo con una interfaz limpia y fácil de usar.
 
-## Desarrollo (Electron)
-   npm run electron:dev
-Esto levanta Vite y abre la app en Electron.
+---
 
-## Build y empaquetado Windows
-   npm run dist
-o
-   npm run electron:build
+## 🚀 Características principales
+- Editor de video rápido y minimalista
+- Exportación en diversos formatos
+- Guardado local y en la nube (futuro)
+- IA para cortes automáticos (futuro)
+- Funciona offline como PWA
+- Versión instalable para Windows
 
-Nota: añade tus iconos en `public/icons/` como `icon-192.png`, `icon-512.png` y `icon.ico` para Windows.
+---
+
+# 🛠️ Instalación y configuración
+
+## 1. Clonar el repositorio
+```bash
+git clone https://github.com/TU-USUARIO/NovaVid.git
+cd NovaVid
