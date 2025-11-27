@@ -7,7 +7,7 @@
   "scripts": {
     "dev": true,
     "build": "node ./tools/generate-llms.js || true && vite build",
-    "preview": true,
+    "preview": "vite preview --host :: --port 3000",
     "electron:dev": "concurrently \"npm:dev\" \"wait-on http://localhost:3000 && electron .\"",
     "electron:build": "npm run build && electron-builder --windows",
     "pack": "electron-builder --dir",
@@ -76,4 +76,3 @@
     }
   }
 }
-

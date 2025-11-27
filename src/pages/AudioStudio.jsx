@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Helmet } from 'react-helmet';
+import { Helmet } from "react-helmet-async";
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
