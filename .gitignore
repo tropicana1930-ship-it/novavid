@@ -1,24 +1,58 @@
-# Node / Vite / Electron
+# ==================================
+# IGNORAR ARCHIVOS Y CARPETAS
+# Generados automáticamente o locales
+# ==================================
+
+# --------------------------
+# 1. DEPENDENCIAS Y BUILD
+# (Node / Vite / Electron / Webpack)
+# --------------------------
 node_modules/
 dist/
 out/
 build/
 release/
+temp/                 # <-- ¡NUEVO! Ignora carpetas temporales (como la que contenía el .exe)
+.parcel-cache/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
 
-# Local env (CRÍTICO: Claves y credenciales)
-.env
+# --------------------------
+# 2. CONFIGURACIÓN LOCAL (CRÍTICO)
+# Protege claves y credenciales
+# --------------------------
+.env                      # ¡CRÍTICO! Archivo principal de variables de entorno
 .env.local
 .env.*.local
+.env.[production|staging|etc]
+.env.[production|staging|etc].local
 
-# Editor & OS
+# --------------------------
+# 3. ARCHIVOS DE SISTEMA Y EDITOR
+# (OS, IDE, Logs, Backups)
+# --------------------------
 .vscode/
 .idea/
 *.log
-*.bak
-.DS_Store
-Thumbs.db
+*.bak                     # Archivos de copia de seguridad (Backup)
+*.swp
+.DS_Store                 # Archivo de metadatos de macOS
+Thumbs.db                 # Archivo de caché de miniaturas de Windows
 
-# Package locks (Ignorados selectivamente)
-package-lock.json
-pnpm-lock.yaml
-yarn.lock
+# --------------------------
+# 4. ASSETS GRANDES O GENERADOS
+# Ajuste basado en tu proyecto
+# --------------------------
+# Si los íconos/favicons son generados en el proceso de build, ignóralos:
+public/icons/             # <-- ¡NUEVO! Ajuste para los íconos de tu proyecto
+
+# --------------------------
+# 5. LOCK FILES (Opcional, según estrategia de equipo)
+# --------------------------
+# Si solo usas NPM:
+# package-lock.json
+
+# Si usas Yarn o PNPM:
+# pnpm-lock.yaml
+# yarn.lock
