@@ -6,7 +6,7 @@
   "main": "main.js",
   "scripts": {
     "dev": "vite --host :: --port 3000",
-    "build": "node tools/generate-llms.js || true && vite build",
+    "build": "node ./tools/generate-llms.js || true && vite build",
     "preview": "vite preview --host :: --port 3000",
     "electron:dev": "concurrently \"npm:dev\" \"wait-on http://localhost:3000 && electron .\"",
     "electron:build": "npm run build && electron-builder --windows",
@@ -76,3 +76,4 @@
     }
   }
 }
+
