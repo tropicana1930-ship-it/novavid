@@ -17,6 +17,13 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // 🛡️ PROTECCIÓN: Si supabase no se inicializó (faltan claves), paramos aquí.
+    if (!supabase) {
+      console.warn("AuthContext: Supabase no está configurado. El modo autenticación está desactivado.");
+      setLoading(false);
+      return;
+    }
+
     // Check active session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
@@ -40,6 +47,8 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const fetchProfile = async (authUser) => {
+    if (!supabase) return; // Protección extra
+
     try {
       const { data, error } = await supabase
         .from('users')
@@ -52,7 +61,7 @@ export const AuthProvider = ({ children }) => {
       if (data) {
         setUser({ ...data, email: authUser.email });
       } else {
-        // Handle case where profile might not exist yet (rare edge case in race conditions)
+        // Fallback si el perfil no existe
         setUser({ 
           id: authUser.id, 
           email: authUser.email,
@@ -69,6 +78,11 @@ export const AuthProvider = ({ children }) => {
   };
 
   const login = async (email, password) => {
+    if (!supabase) {
+      toast({ title: "Error de configuración", description: "Supabase no está conectado.", variant: "destructive" });
+      return { success: false, error: "Supabase not configured" };
+    }
+
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -77,7 +91,6 @@ export const AuthProvider = ({ children }) => {
 
       if (error) throw error;
 
-      // Profile fetch is handled by onAuthStateChange
       toast({
         title: "Welcome back!",
         description: "Successfully logged in.",
@@ -95,8 +108,12 @@ export const AuthProvider = ({ children }) => {
   };
 
   const register = async (name, email, password) => {
+    if (!supabase) {
+      toast({ title: "Error", description: "No se puede registrar sin base de datos.", variant: "destructive" });
+      return { success: false };
+    }
+
     try {
-      // 1. Sign up in Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
@@ -108,7 +125,6 @@ export const AuthProvider = ({ children }) => {
       if (authError) throw authError;
       if (!authData.user) throw new Error('Registration failed');
 
-      // 2. Create profile in public.users
       const trialEndsAt = new Date();
       trialEndsAt.setDate(trialEndsAt.getDate() + 5);
 
@@ -142,6 +158,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = async () => {
+    if (!supabase) return;
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
@@ -161,7 +178,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const updateUserPlan = async (plan) => {
-    if (!user) return;
+    if (!user || !supabase) return;
 
     try {
       const { error } = await supabase
@@ -187,7 +204,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const useCredits = async (amount) => {
-    if (!user || user.credits < amount) return false;
+    if (!user || !supabase || user.credits < amount) return false;
 
     try {
       const newCredits = user.credits - amount;

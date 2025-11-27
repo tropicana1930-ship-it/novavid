@@ -4,6 +4,7 @@ import { MessageSquare, X, Send, Bot, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { openai, handleAIError } from '@/lib/ai';
+import { useToast } from '@/components/ui/use-toast'; // Asegúrate de importar esto
 
 const AIChatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -13,6 +14,7 @@ const AIChatbot = () => {
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
+  const { toast } = useToast();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -26,29 +28,53 @@ const AIChatbot = () => {
     e.preventDefault();
     if (!inputValue.trim()) return;
 
+    // 1. Verificación de seguridad
+    if (!openai) {
+      toast({
+        variant: "destructive",
+        title: "Error de Configuración",
+        description: "Falta la API Key en el archivo .env (VITE_OPENAI_API_KEY)",
+      });
+      return;
+    }
+
     const newUserMsg = { role: 'user', content: inputValue };
     setMessages(prev => [...prev, newUserMsg]);
     setInputValue('');
     setIsTyping(true);
 
     try {
-      // Context aware system message
+      // 2. Crear contexto limpio para la API
       const contextMessages = [
-        { role: 'system', content: 'You are NovaVid AI, a helpful multimedia editing assistant. Keep answers concise and helpful.' },
-        ...messages,
+        { role: 'system', content: 'You are NovaVid AI, a helpful multimedia editing assistant. Keep answers concise.' },
+        ...messages.map(m => ({ role: m.role, content: m.content })),
         newUserMsg
       ];
 
-      const response = await openai.chat(contextMessages);
-      setMessages(prev => [...prev, response]);
+      // 3. LLAMADA CORRECTA A LA API OFICIAL
+      const completion = await openai.chat.completions.create({
+        messages: contextMessages,
+        model: "gpt-3.5-turbo",
+      });
+
+      // 4. Extraer el mensaje de la respuesta
+      const aiResponse = completion.choices[0].message;
+      setMessages(prev => [...prev, aiResponse]);
+
     } catch (error) {
-      handleAIError(error);
-      setMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, I encountered an error connecting to the AI service.' }]);
+      const errorMsg = handleAIError(error);
+      setMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, I encountered an error.' }]);
+      toast({
+        variant: "destructive",
+        title: "Error de IA",
+        description: errorMsg,
+      });
     } finally {
       setIsTyping(false);
     }
   };
 
+  // ... (Mantén el resto de tu código de renderizado JSX igual, desde el return)
   return (
     <div className="fixed bottom-6 right-6 z-50">
       <AnimatePresence>
@@ -59,6 +85,7 @@ const AIChatbot = () => {
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             className="bg-gray-900 border border-gray-800 rounded-2xl shadow-2xl w-80 md:w-96 mb-4 overflow-hidden flex flex-col h-[500px]"
           >
+            {/* Header */}
             <div className="bg-blue-600 p-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Bot className="w-5 h-5 text-white" />
@@ -74,6 +101,7 @@ const AIChatbot = () => {
               </Button>
             </div>
 
+            {/* Messages Area */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-950/50">
               {messages.map((msg, idx) => (
                 <div
@@ -116,6 +144,7 @@ const AIChatbot = () => {
               <div ref={messagesEndRef} />
             </div>
 
+            {/* Input Area */}
             <form onSubmit={handleSend} className="p-3 bg-gray-900 border-t border-gray-800 flex gap-2">
               <Input
                 value={inputValue}

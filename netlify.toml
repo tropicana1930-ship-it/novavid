@@ -1,39 +1,15 @@
-name: Despliegue Automático a Netlify
-on:
-  push:
-    branches: [ main ] # Ejecutar solo cuando se hace push a la rama principal
+# Configuración global para el despliegue de tu sitio.
 
-jobs:
-  build_and_deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: 1. Checkout Código
-        uses: actions/checkout@v4
+[build]
+  # El comando que Netlify debe ejecutar para generar la carpeta 'dist'.
+  command = "npm run build"
+  
+  # La carpeta que contiene los archivos finales listos para ser publicados.
+  publish = "dist"
 
-      - name: 2. Configurar Node.js (v20)
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: 'npm' # Habilitar caché de dependencias para acelerar 'npm ci'
-
-      - name: 3. Instalar Dependencias
-        # 'npm ci' es más rápido y recomendado para CI/CD que 'npm install'
-        run: npm ci
-
-      - name: 4. Compilar (Build) la Aplicación Web
-        # Es crucial pasar las variables de entorno VITE_ para que la app Vite se compile correctamente.
-        # Esto previene el error rojo si el build depende de ellas.
-        run: npm run build
-        env:
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-
-      - name: 5. Desplegar a Netlify
-        # Usamos la acción oficial de Netlify CLI para el despliegue
-        uses: netlify/actions/cli@v1
-        with:
-          # Netlify usará el directorio 'dist' por defecto (según tu netlify.toml)
-          args: deploy --prod
-        env:
-          # Token de acceso a la API de Netlify (secreto de GitHub)
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+# Configuración para el manejo de rutas y SPA (Single Page Application).
+# Esto es crucial para que las rutas internas de tu app funcionen.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
