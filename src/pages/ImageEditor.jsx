@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Upload, Wand2, Palette, Sparkles, Download, RotateCw, Eraser, Scan, Eye, Bot } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
-import { googleAI, handleAIError } from '@/lib/ai';
+import { openai as googleAI, handleAIError } from '@/lib/ai';
 
 const ImageEditor = () => {
   const [brightness, setBrightness] = useState([100]);
