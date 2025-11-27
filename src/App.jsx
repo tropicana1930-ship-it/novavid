@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Helmet } from 'react-helmet';
+import { HelmetProvider } from 'react-helmet-async'; 
+import { Helmet } from "react-helmet-async";
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import Landing from '@/pages/Landing';

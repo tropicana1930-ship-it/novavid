@@ -5,13 +5,13 @@
   "private": true,
   "main": "main.js",
   "scripts": {
-    "dev": "vite --host :: --port 3000",
+    "dev": true,
     "build": "node ./tools/generate-llms.js || true && vite build",
-    "preview": "vite preview --host :: --port 3000",
+    "preview": true,
     "electron:dev": "concurrently \"npm:dev\" \"wait-on http://localhost:3000 && electron .\"",
     "electron:build": "npm run build && electron-builder --windows",
     "pack": "electron-builder --dir",
-    "dist": "electron-builder"
+    "dist": true
   },
   "dependencies": {
     "@radix-ui/react-alert-dialog": "^1.1.4",
