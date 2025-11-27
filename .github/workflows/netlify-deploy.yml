@@ -1,2 +1,35 @@
 name: Deploy to Netlify
-# ... (código del workflow de Netlify)
+on:
+  push:
+    branches: [ main ] # Ejecutar solo cuando se hace push a la rama principal
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Código
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: 'npm' # Habilitar caché de dependencias
+
+      - name: Instalar Dependencias
+        run: npm ci
+
+      - name: Compilar (Build) la Aplicación Web
+        run: npm run build
+
+      - name: Desplegar a Netlify
+        uses: netlify/actions/cli@master
+        with:
+          # netlify/actions/cli automáticamente usa la carpeta 'dist'
+          args: deploy --dir=dist --prod --site=$NETLIFY_SITE_ID
+        env:
+          # NECESARIO: Token para autenticar la API de Netlify
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+
+
+Una vez que reemplaces el contenido de ese archivo y ejecutes los comandos de Git (`git add`, `git commit`, `git push`), tu despliegue automático a Netlify funcionará correctamente. ¡Así tendrás tu PWA en línea!
