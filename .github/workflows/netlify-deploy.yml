@@ -14,26 +14,20 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: 'npm' # Habilitar caché de dependencias para acelerar 'npm ci'
+          cache: 'npm' # Habilitar caché de dependencias
 
       - name: 3. Instalar Dependencias
-        # 'npm ci' es más rápido y recomendado para CI/CD que 'npm install'
         run: npm ci
 
       - name: 4. Compilar (Build) la Aplicación Web
-        # Este comando debe generar la carpeta 'dist'
         run: npm run build
 
       - name: 5. Desplegar a Netlify
-        # Usamos una versión específica (@v1) para mayor estabilidad en lugar de @master
-        uses: netlify/actions/cli@v1
-        with:
-          # netlify/actions/cli automáticamente usará la carpeta 'dist' (dir=dist) 
-          # y desplegará en producción (--prod).
-          # Solo es necesario pasar el comando y las variables de entorno.
-          args: deploy --prod
+        # Solución: Usamos la CLI oficial de Netlify directamente
+        run: |
+          npm install -g netlify-cli
+          netlify deploy --prod --dir=dist
         env:
-          # [CRUCIAL] Token para autenticar la API de Netlify.
+          # [CRUCIAL] Asegúrate de que estos secretos estén en tu repositorio de GitHub (Settings > Secrets and variables > Actions)
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          # Opcional: Si el site ID no está en netlify.toml, se puede usar aquí.
-          # NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}

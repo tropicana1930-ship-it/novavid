@@ -17,3 +17,18 @@ export function handleAIError(error) {
   // Devuelve un mensaje amigable para mostrar en la interfaz
   return error?.message || "Ocurrió un error al conectar con el asistente.";
 }
+
+// NUEVA FUNCIÓN: Generación de Imágenes (DALL-E 3)
+export async function generateImage(prompt) {
+  if (!openai) throw new Error("AI not configured");
+
+  const response = await openai.images.generate({
+    model: "dall-e-3",
+    prompt: prompt,
+    n: 1,
+    size: "1024x1024",
+    response_format: "b64_json" // Usamos base64 para evitar problemas de CORS con URLs externas
+  });
+
+  return "data:image/png;base64," + response.data[0].b64_json;
+}

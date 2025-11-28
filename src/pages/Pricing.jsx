@@ -12,26 +12,26 @@ const Pricing = () => {
   const navigate = useNavigate();
   const [billingCycle, setBillingCycle] = useState('monthly'); // 'monthly' or 'yearly'
 
-  // CONFIGURACIÓN DE ENLACES DE PAGO (Producción)
+  // CONFIGURACIÓN DE ENLACES DE PAGO (NUEVOS)
   const paymentLinks = {
     stripe: {
       premium: {
-        monthly: 'https://buy.stripe.com/8x2fZg5eMapWgkw3BT2Fa04',
-        yearly: 'https://buy.stripe.com/9B68wOdLi41ygkw1tL2Fa06'
+        monthly: 'https://buy.stripe.com/dRmdR8bDa9lSd8kdct2Fa08',
+        yearly: 'https://buy.stripe.com/28E8wObDa1Tq5FS6O52Fa0a'
       },
       pro: {
-        monthly: 'https://buy.stripe.com/28E4gybDadC8fgsfkB2Fa05',
-        yearly: 'https://buy.stripe.com/5kQcN4dLibu0d8kfkB2Fa07'
+        monthly: 'https://buy.stripe.com/5kQ3cu7mU8hO1pC0pH2Fa09',
+        yearly: 'https://buy.stripe.com/dRm6oGdLi69G1pC8Wd2Fa0b'
       }
     },
     paypal: {
       premium: {
-        monthly: 'https://www.paypal.com/webapps/billing/plans/subscribe?plan_id=P-1H195645S6441341HNEPV6EQ',
-        yearly: 'https://www.paypal.com/webapps/billing/plans/subscribe?plan_id=P-42N83750VS894501HNEPHWYI'
+        monthly: 'https://www.paypal.com/webapps/billing/plans/subscribe?plan_id=P-1CU872153T160240CNEUZ6GQ',
+        yearly: 'https://www.paypal.com/webapps/billing/plans/subscribe?plan_id=P-915366303B503794PNEU2BBI'
       },
       pro: {
-        monthly: 'https://www.paypal.com/webapps/billing/plans/subscribe?plan_id=P-55H0605348722794BNEQY46A',
-        yearly: 'https://www.paypal.com/webapps/billing/plans/subscribe?plan_id=P-1VR716857T572330SNEPHS4Q'
+        monthly: 'https://www.paypal.com/webapps/billing/plans/subscribe?plan_id=P-5TU115583H392493PNEUZ7WY',
+        yearly: 'https://www.paypal.com/webapps/billing/plans/subscribe?plan_id=P-3YX87057DC5843453NEU2CKI'
       }
     }
   };
@@ -48,16 +48,14 @@ const Pricing = () => {
       return;
     }
 
-    // Obtenemos la URL correcta según el plan y ciclo
     const url = paymentLinks[provider]?.[planKey]?.[billingCycle];
     
     if (url) {
-      // Redirigir al usuario a la pasarela de pago
       window.location.href = url;
     } else {
       toast({
         title: "Link no disponible",
-        description: "El enlace de pago para este plan no está configurado aún.",
+        description: "El enlace de pago no está configurado.",
         variant: "destructive"
       });
     }
@@ -81,9 +79,10 @@ const Pricing = () => {
     },
     {
       name: 'Premium',
-      price: billingCycle === 'monthly' ? 19 : 15,
-      billing: 'per month',
-      yearlySavings: billingCycle === 'yearly' ? 'Saved $48!' : null,
+      // Precios actualizados: $19 mensual, $180 anual
+      price: billingCycle === 'monthly' ? 19 : 180,
+      billing: billingCycle === 'monthly' ? '/mes' : '/año',
+      yearlySavings: billingCycle === 'yearly' ? '¡Ahorras $48 al año!' : null,
       features: [
         '13-second videos',
         '10GB cloud storage',
@@ -99,9 +98,10 @@ const Pricing = () => {
     },
     {
       name: 'Pro',
-      price: billingCycle === 'monthly' ? 49 : 39,
-      billing: 'per month',
-      yearlySavings: billingCycle === 'yearly' ? 'Saved $120!' : null,
+      // Precios actualizados: $49 mensual, $468 anual
+      price: billingCycle === 'monthly' ? 49 : 468,
+      billing: billingCycle === 'monthly' ? '/mes' : '/año',
+      yearlySavings: billingCycle === 'yearly' ? '¡Ahorras $120 al año!' : null,
       features: [
         '18-second videos',
         'Unlimited cloud storage',
@@ -123,7 +123,6 @@ const Pricing = () => {
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-blue-950 to-gray-950">
       <Helmet>
         <title>Pricing - NovaVid</title>
-        <meta name="description" content="Choose the perfect plan for your creative needs. Start with a 5-day free trial." />
       </Helmet>
 
       <nav className="border-b border-gray-800 bg-gray-950/50 backdrop-blur-xl">
@@ -135,22 +134,12 @@ const Pricing = () => {
           <div className="flex items-center gap-4">
             {user ? (
               <Link to="/dashboard">
-                <Button variant="ghost" className="text-white hover:bg-white/10">
-                  Dashboard
-                </Button>
+                <Button variant="ghost" className="text-white hover:bg-white/10">Dashboard</Button>
               </Link>
             ) : (
               <>
-                <Link to="/login">
-                  <Button variant="ghost" className="text-white hover:bg-white/10">
-                    Login
-                  </Button>
-                </Link>
-                <Link to="/register">
-                  <Button className="bg-blue-600 hover:bg-blue-700 text-white">
-                    Sign Up
-                  </Button>
-                </Link>
+                <Link to="/login"><Button variant="ghost" className="text-white hover:bg-white/10">Login</Button></Link>
+                <Link to="/register"><Button className="bg-blue-600 hover:bg-blue-700 text-white">Sign Up</Button></Link>
               </>
             )}
           </div>
@@ -164,9 +153,9 @@ const Pricing = () => {
           transition={{ duration: 0.5 }}
           className="text-center mb-12"
         >
-          <h1 className="text-5xl font-bold text-white mb-4">Choose Your Plan</h1>
+          <h1 className="text-5xl font-bold text-white mb-4">Elige tu Plan</h1>
           <p className="text-xl text-gray-300 max-w-2xl mx-auto mb-8">
-            Start with a 5-day free trial. Upgrade anytime to unlock more features.
+            Desbloquea todo tu potencial creativo. Prueba gratis por 5 días.
           </p>
 
           <div className="flex justify-center">
@@ -174,22 +163,18 @@ const Pricing = () => {
               <button
                 onClick={() => setBillingCycle('monthly')}
                 className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
-                  billingCycle === 'monthly'
-                    ? 'bg-blue-600 text-white shadow-lg'
-                    : 'text-gray-400 hover:text-white'
+                  billingCycle === 'monthly' ? 'bg-blue-600 text-white shadow-lg' : 'text-gray-400 hover:text-white'
                 }`}
               >
-                Monthly
+                Mensual
               </button>
               <button
                 onClick={() => setBillingCycle('yearly')}
                 className={`px-6 py-2 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${
-                  billingCycle === 'yearly'
-                    ? 'bg-blue-600 text-white shadow-lg'
-                    : 'text-gray-400 hover:text-white'
+                  billingCycle === 'yearly' ? 'bg-blue-600 text-white shadow-lg' : 'text-gray-400 hover:text-white'
                 }`}
               >
-                Yearly <span className="text-xs bg-green-500 text-black px-1.5 rounded font-bold">-20%</span>
+                Anual <span className="text-xs bg-green-500 text-black px-1.5 rounded font-bold">-20%</span>
               </button>
             </div>
           </div>
@@ -209,7 +194,7 @@ const Pricing = () => {
               {plan.popular && (
                 <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
                   <div className="bg-blue-600 text-white px-4 py-1 rounded-full text-sm font-semibold shadow-lg">
-                    Most Popular
+                    Más Popular
                   </div>
                 </div>
               )}
@@ -218,7 +203,7 @@ const Pricing = () => {
                 <h3 className="text-2xl font-bold text-white mb-2">{plan.name}</h3>
                 <div className="flex items-baseline justify-center gap-1">
                   <span className="text-4xl font-bold text-white">${plan.price}</span>
-                  <span className="text-gray-400">/{plan.billing}</span>
+                  <span className="text-gray-400">{plan.billing}</span>
                 </div>
                 {plan.yearlySavings && (
                   <div className="text-sm text-green-400 mt-2 font-medium">
@@ -242,20 +227,18 @@ const Pricing = () => {
                     onClick={() => handleUpgrade(plan.name, 'stripe')}
                     className="w-full bg-gray-800 hover:bg-gray-700 text-white"
                   >
-                    Get Started
+                    Empezar Gratis
                   </Button>
                 ) : (
                   <>
                     <Button
                       onClick={() => handleUpgrade(plan.name, 'stripe')}
                       className={`w-full ${
-                        plan.popular
-                          ? 'bg-blue-600 hover:bg-blue-700'
-                          : 'bg-gray-800 hover:bg-gray-700'
+                        plan.popular ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-800 hover:bg-gray-700'
                       } text-white flex items-center justify-center gap-2`}
                     >
                       <CreditCard className="w-4 h-4" />
-                      Pagar con Tarjeta (Stripe)
+                      Pagar con Stripe
                     </Button>
                     <Button
                       onClick={() => handleUpgrade(plan.name, 'paypal')}
