@@ -6,13 +6,13 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { Check, Sparkles, CreditCard } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const Pricing = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [billingCycle, setBillingCycle] = useState('monthly'); // 'monthly' or 'yearly'
 
+  // CONFIGURACIÓN DE ENLACES DE PAGO (Producción)
   const paymentLinks = {
     stripe: {
       premium: {
@@ -48,14 +48,16 @@ const Pricing = () => {
       return;
     }
 
-    const url = paymentLinks[provider][planKey][billingCycle];
+    // Obtenemos la URL correcta según el plan y ciclo
+    const url = paymentLinks[provider]?.[planKey]?.[billingCycle];
     
     if (url) {
+      // Redirigir al usuario a la pasarela de pago
       window.location.href = url;
     } else {
       toast({
-        title: "Link Not Found",
-        description: "The payment link for this plan is currently unavailable.",
+        title: "Link no disponible",
+        description: "El enlace de pago para este plan no está configurado aún.",
         variant: "destructive"
       });
     }
@@ -253,7 +255,7 @@ const Pricing = () => {
                       } text-white flex items-center justify-center gap-2`}
                     >
                       <CreditCard className="w-4 h-4" />
-                      Pay with Stripe
+                      Pagar con Tarjeta (Stripe)
                     </Button>
                     <Button
                       onClick={() => handleUpgrade(plan.name, 'paypal')}
@@ -269,33 +271,6 @@ const Pricing = () => {
             </motion.div>
           ))}
         </div>
-
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.5 }}
-          className="mt-16 text-center"
-        >
-          <p className="text-gray-400 mb-4">All plans include:</p>
-          <div className="flex flex-wrap justify-center gap-6 text-gray-300">
-            <div className="flex items-center gap-2">
-              <Check className="w-5 h-5 text-blue-400" />
-              <span>Cloud storage</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Check className="w-5 h-5 text-blue-400" />
-              <span>AI-powered tools</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Check className="w-5 h-5 text-blue-400" />
-              <span>Edit history</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Check className="w-5 h-5 text-blue-400" />
-              <span>Regular updates</span>
-            </div>
-          </div>
-        </motion.div>
       </div>
     </div>
   );

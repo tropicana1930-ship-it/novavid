@@ -3,35 +3,42 @@ import { useAuth } from '@/contexts/AuthContext';
 export const usePlanLimits = () => {
   const { user } = useAuth();
 
-  // Configuración de los planes según tu documento
   const PLANS = {
     free: {
       name: 'Free Starter',
-      videoDuration: 8,      // Máximo 8 segundos
-      canUploadMusic: false, // No puede subir música propia
-      musicLibrary: 'basic', // Solo librería básica
-      allowCloudSave: false, // No guarda en nube (ejemplo)
-      maxProjects: 3
+      videoDuration: 8,      
+      canUploadMusic: false, 
+      musicLibrary: 'basic', 
+      allowCloudSave: false, 
+      maxProjects: 3,
+      aiAssistant: false,
+      advancedAIFeatures: false,
+      maxAICredits: 100 
     },
     premium: {
       name: 'Premium Creator',
-      videoDuration: 13,     // Máximo 13 segundos
-      canUploadMusic: true,  // Con restricciones (implementar lógica extra si se requiere)
+      videoDuration: 13,     
+      canUploadMusic: true,  
       musicLibrary: 'varied',
       allowCloudSave: true,
-      maxProjects: 20
+      maxProjects: 20,
+      aiAssistant: false,
+      advancedAIFeatures: true, 
+      maxAICredits: 500
     },
     pro: {
       name: 'Pro Studio',
-      videoDuration: 18,     // Máximo 18 segundos
-      canUploadMusic: true,  // Sin restricciones
+      videoDuration: 18,     
+      canUploadMusic: true,  
       musicLibrary: 'unlimited',
       allowCloudSave: true,
-      maxProjects: 9999
+      maxProjects: 9999,
+      aiAssistant: true, 
+      advancedAIFeatures: true,
+      maxAICredits: 9999
     }
   };
-
-  // Determinar si está en periodo de prueba (5 días)
+  
   const isTrialActive = () => {
     if (!user?.trial_ends_at) return false;
     const now = new Date();
@@ -39,7 +46,6 @@ export const usePlanLimits = () => {
     return now < trialEnd;
   };
 
-  // Lógica principal: Si está en trial, le damos beneficios PRO, si no, su plan real
   const currentPlanKey = isTrialActive() ? 'pro' : (user?.plan || 'free');
   const currentLimits = PLANS[currentPlanKey];
 
@@ -47,9 +53,7 @@ export const usePlanLimits = () => {
     ...currentLimits,
     planKey: currentPlanKey,
     isTrial: isTrialActive(),
-    // Función auxiliar para verificar límites en la UI
     checkPermission: (featureName) => {
-      // Ejemplo: checkPermission('canUploadMusic')
       return currentLimits[featureName] === true;
     }
   };

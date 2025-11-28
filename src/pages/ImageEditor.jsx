@@ -4,9 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import DashboardLayout from '@/components/DashboardLayout';
-import { Upload, Type, Square, Circle as CircleIcon, Download, Wand2, Eraser, MousePointer, Image as ImageIcon, Sparkles } from 'lucide-react';
+import { Upload, Type, Square, Download, Wand2, Eraser, Image as ImageIcon, Sparkles } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
-import { fabric } from 'fabric'; // Importamos el motor gráfico
+import * as fabric from 'fabric';
 import { openai, handleAIError } from '@/lib/ai';
 
 const ImageEditor = () => {
@@ -22,16 +22,15 @@ const ImageEditor = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [aiAnalysis, setAiAnalysis] = useState('');
 
-  // 1. Inicializar Canvas de Fabric.js
+  // 1. Inicializar Canvas
   useEffect(() => {
     const initCanvas = new fabric.Canvas(canvasRef.current, {
       height: 500,
       width: 800,
-      backgroundColor: '#1f2937', // gris oscuro
+      backgroundColor: '#1f2937', 
       selection: true,
     });
     
-    // Eventos para actualizar la UI cuando seleccionas algo
     initCanvas.on('selection:created', (e) => setSelectedObject(e.selected[0]));
     initCanvas.on('selection:updated', (e) => setSelectedObject(e.selected[0]));
     initCanvas.on('selection:cleared', () => setSelectedObject(null));
@@ -43,29 +42,48 @@ const ImageEditor = () => {
     };
   }, []);
 
-  // 2. Manejar subida de imagen
+  // 2. Manejar subida de imagen (MÉTODO NATIVO ROBUSTO)
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (!file || !canvas) return;
 
     const reader = new FileReader();
+
     reader.onload = (f) => {
-      fabric.Image.fromURL(f.target.result, (img) => {
-        // Ajustar imagen al canvas
-        img.scaleToWidth(400);
-        canvas.centerObject(img);
-        canvas.add(img);
-        canvas.setActiveObject(img);
-        canvas.renderAll();
+      const dataUrl = f.target.result;
+      
+      // Creamos un elemento de imagen HTML estándar primero
+      const imgObj = new Image();
+      imgObj.src = dataUrl;
+      imgObj.crossOrigin = "anonymous"; // Importante para evitar problemas de CORS
+
+      imgObj.onload = () => {
+        // Creamos la imagen de Fabric a partir del elemento HTML cargado
+        const imgInstance = new fabric.Image(imgObj);
+
+        // Escalar para ajustar al canvas (80% del tamaño)
+        const scaleFactor = Math.min(
+          (canvas.width * 0.8) / imgInstance.width,
+          (canvas.height * 0.8) / imgInstance.height
+        );
         
-        // Guardamos referencia para IA
-        // (En una app real, guardarías el file o base64 en un estado aparte para enviarlo a GPT)
-      });
+        imgInstance.scale(scaleFactor);
+        canvas.centerObject(imgInstance);
+        canvas.add(imgInstance);
+        canvas.setActiveObject(imgInstance);
+        canvas.renderAll();
+      };
+      
+      imgObj.onerror = () => {
+         toast({ title: "Error", description: "La imagen no pudo ser interpretada.", variant: "destructive" });
+      };
     };
+    
     reader.readAsDataURL(file);
+    e.target.value = ''; // Limpiar input
   };
 
-  // 3. Herramientas de Edición (Objetos)
+  // 3. Herramientas de Edición
   const addText = () => {
     const text = new fabric.IText('Doble click para editar', {
       left: 100, top: 100,
@@ -91,18 +109,13 @@ const ImageEditor = () => {
     }
   };
 
-  // 4. Filtros en Tiempo Real
+  // 4. Filtros
   const applyFilters = () => {
     if (!canvas) return;
     const obj = canvas.getActiveObject();
-    if (!obj || !obj.isType('image')) {
-      toast({ title: "Select an Image", description: "Click on an image to apply filters.", variant: "destructive" });
-      return;
-    }
+    if (!obj || !obj.isType('image')) return;
 
-    // Filtro de Brillo
     const brightnessFilter = new fabric.Image.filters.Brightness({ brightness: parseFloat(brightness) });
-    // Filtro de Contraste
     const contrastFilter = new fabric.Image.filters.Contrast({ contrast: parseFloat(contrast) });
 
     obj.filters = [brightnessFilter, contrastFilter];
@@ -110,16 +123,19 @@ const ImageEditor = () => {
     canvas.renderAll();
   };
 
-  // Efecto para aplicar filtros cuando mueves los sliders
   useEffect(() => {
     applyFilters();
   }, [brightness, contrast]);
 
-  // 5. Análisis de IA (GPT-4 Vision)
+  // 5. Análisis de IA
   const handleAnalyzeImage = async () => {
-    // Para simplificar, obtenemos la imagen actual del canvas como base64
-    if (!canvas) return;
-    const dataUrl = canvas.toDataURL({ format: 'png', multiplier: 0.5 }); // Baja calidad para análisis rápido
+    if (!canvas?.getObjects().length) {
+      toast({ title: "Canvas Empty", description: "Upload an image first.", variant: "destructive" });
+      return;
+    }
+    
+    // Obtenemos imagen en baja calidad para la IA
+    const dataUrl = canvas.toDataURL({ format: 'png', multiplier: 0.5 });
     
     setIsAnalyzing(true);
     try {
@@ -131,7 +147,7 @@ const ImageEditor = () => {
           {
             role: "user",
             content: [
-              { type: "text", text: "Describe this image and suggest edits or captions." },
+              { type: "text", text: "Describe this image and suggest creative edits." },
               { type: "image_url", image_url: { url: dataUrl } },
             ],
           },
@@ -140,6 +156,7 @@ const ImageEditor = () => {
       setAiAnalysis(response.choices[0].message.content);
     } catch (error) {
       handleAIError(error);
+      toast({ title: "AI Error", description: "No se pudo analizar la imagen.", variant: "destructive" });
     } finally {
       setIsAnalyzing(false);
     }
@@ -175,7 +192,7 @@ const ImageEditor = () => {
         </div>
 
         <div className="grid lg:grid-cols-3 gap-6">
-          {/* LIENZO PRINCIPAL */}
+          {/* LIENZO */}
           <div className="lg:col-span-2 bg-gray-900 border border-gray-800 rounded-xl overflow-hidden flex items-center justify-center relative min-h-[500px]">
             <canvas ref={canvasRef} className="border border-gray-700 shadow-2xl" />
             
@@ -190,7 +207,7 @@ const ImageEditor = () => {
             )}
           </div>
 
-          {/* BARRA DE HERRAMIENTAS */}
+          {/* HERRAMIENTAS */}
           <div className="space-y-6">
             <Tabs defaultValue="tools" className="w-full">
               <TabsList className="grid w-full grid-cols-3 bg-gray-900 border border-gray-800">
@@ -202,7 +219,7 @@ const ImageEditor = () => {
               <TabsContent value="tools" className="space-y-4 mt-4">
                 <div className="grid grid-cols-2 gap-3">
                   <Button variant="outline" onClick={addText} className="text-white border-gray-700 hover:bg-gray-800">
-                    <Type className="w-4 h-4 mr-2" /> Add Text
+                    <Type className="w-4 h-4 mr-2" /> Text
                   </Button>
                   <Button variant="outline" onClick={addRect} className="text-white border-gray-700 hover:bg-gray-800">
                     <Square className="w-4 h-4 mr-2" /> Rectangle
@@ -211,7 +228,7 @@ const ImageEditor = () => {
                     <Sparkles className="w-4 h-4 mr-2" /> Draw
                   </Button>
                   <Button variant="outline" onClick={() => document.getElementById('imgUpload').click()} className="text-white border-gray-700 hover:bg-gray-800">
-                    <ImageIcon className="w-4 h-4 mr-2" /> Add Image
+                    <ImageIcon className="w-4 h-4 mr-2" /> Image
                   </Button>
                 </div>
               </TabsContent>
@@ -222,33 +239,20 @@ const ImageEditor = () => {
                     <div className="flex justify-between mb-2 text-white text-sm">
                       <span>Brightness</span> <span>{(brightness * 100).toFixed(0)}%</span>
                     </div>
-                    <Slider 
-                      value={[brightness * 100]} 
-                      min={-100} max={100} step={1}
-                      onValueChange={(val) => setBrightness(val[0] / 100)} 
-                    />
+                    <Slider value={[brightness * 100]} min={-100} max={100} step={1} onValueChange={(val) => setBrightness(val[0] / 100)} />
                   </div>
                   <div>
                     <div className="flex justify-between mb-2 text-white text-sm">
                       <span>Contrast</span> <span>{(contrast * 100).toFixed(0)}%</span>
                     </div>
-                    <Slider 
-                      value={[contrast * 100]} 
-                      min={-100} max={100} step={1}
-                      onValueChange={(val) => setContrast(val[0] / 100)} 
-                    />
+                    <Slider value={[contrast * 100]} min={-100} max={100} step={1} onValueChange={(val) => setContrast(val[0] / 100)} />
                   </div>
-                  <p className="text-xs text-gray-500 mt-4">* Select an image object first</p>
                 </div>
               </TabsContent>
 
               <TabsContent value="ai" className="space-y-4 mt-4">
                 <div className="bg-gray-900/50 p-4 rounded-xl border border-gray-800">
-                  <Button 
-                    onClick={handleAnalyzeImage} 
-                    disabled={isAnalyzing} 
-                    className="w-full bg-purple-600 hover:bg-purple-700 mb-4"
-                  >
+                  <Button onClick={handleAnalyzeImage} disabled={isAnalyzing} className="w-full bg-purple-600 hover:bg-purple-700 mb-4">
                     {isAnalyzing ? <Wand2 className="w-4 h-4 animate-spin mr-2" /> : <Wand2 className="w-4 h-4 mr-2" />}
                     Analyze Canvas
                   </Button>
