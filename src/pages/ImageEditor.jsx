@@ -12,20 +12,17 @@ import { openai, handleAIError, generateImage } from '@/lib/ai';
 import { useAuth } from '@/contexts/AuthContext';
 
 const ImageEditor = () => {
-  const { useCredits } = useAuth();
+  const { user, useCredits } = useAuth();
   const canvasRef = useRef(null);
   const [canvas, setCanvas] = useState(null);
   const [selectedObject, setSelectedObject] = useState(null);
   
-  // Estados de filtros
   const [brightness, setBrightness] = useState(0);
   const [contrast, setContrast] = useState(0);
   
-  // Estados de IA
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [aiPrompt, setAiPrompt] = useState(''); 
 
-  // 1. Inicializar Canvas
   useEffect(() => {
     const initCanvas = new fabric.Canvas(canvasRef.current, {
       height: 500,
@@ -45,7 +42,6 @@ const ImageEditor = () => {
     };
   }, []);
 
-  // 2. Carga de Imagen (Método Nativo Robusto)
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (!file || !canvas) return;
@@ -78,7 +74,6 @@ const ImageEditor = () => {
     e.target.value = '';
   };
 
-  // 3. Herramientas Básicas
   const addText = () => {
     const text = new fabric.IText('Texto', { left: 100, top: 100, fontFamily: 'arial', fill: '#ffffff', fontSize: 24 });
     canvas.add(text);
@@ -98,7 +93,6 @@ const ImageEditor = () => {
     }
   };
 
-  // 4. Filtros
   const applyFilters = () => {
     if (!canvas) return;
     const obj = canvas.getActiveObject();
@@ -122,6 +116,11 @@ const ImageEditor = () => {
   const handleSmartAdjust = async () => {
     if (!aiPrompt.trim()) return;
     
+    if (!user) {
+        toast({ title: "Acceso denegado", description: "Debes iniciar sesión para usar la IA.", variant: "destructive" });
+        return;
+    }
+
     const cost = 2;
     const hasCredits = await useCredits(cost);
     if (!hasCredits) {
@@ -131,6 +130,11 @@ const ImageEditor = () => {
 
     setIsAiLoading(true);
     try {
+      if (!openai) {
+        await useCredits(-cost); 
+        throw new Error("AI not configured. Check VITE_OPENAI_API_KEY in .env");
+      }
+
       const response = await openai.chat.completions.create({
         model: "gpt-3.5-turbo",
         messages: [
@@ -145,15 +149,21 @@ const ImageEditor = () => {
       toast({ title: "Ajuste Aplicado", description: "Filtros actualizados por IA." });
     } catch (e) {
       handleAIError(e);
-      await useCredits(-cost); // Reembolso
+      await useCredits(-cost); 
+      toast({ title: "Error de IA", description: e.message.includes("AI not configured") ? "Error de configuración. Revisa tus claves API." : "El servicio de IA falló.", variant: "destructive" });
     } finally {
-      setIsAiLoading(false);
+      setIsAiLoading(false); // <--- SOLUCIÓN: ASEGURA QUE SE LIMPIE EL ESTADO
     }
   };
 
   // B. Generar Elemento (Texto -> DALL-E -> Canvas)
   const handleGenerateElement = async () => {
     if (!aiPrompt.trim()) return;
+
+    if (!user) {
+        toast({ title: "Acceso denegado", description: "Debes iniciar sesión para usar la IA.", variant: "destructive" });
+        return;
+    }
 
     const cost = 15;
     const hasCredits = await useCredits(cost);
@@ -164,6 +174,11 @@ const ImageEditor = () => {
 
     setIsAiLoading(true);
     try {
+      if (!openai) {
+        await useCredits(-cost); 
+        throw new Error("AI not configured. Check VITE_OPENAI_API_KEY in .env");
+      }
+      
       const imageUrl = await generateImage(aiPrompt + ", isolated object on transparent background style, high quality");
       
       fabric.Image.fromURL(imageUrl, (img) => {
@@ -176,9 +191,10 @@ const ImageEditor = () => {
       toast({ title: "Elemento Generado", description: "Imagen añadida al canvas." });
     } catch (e) {
       handleAIError(e);
-      await useCredits(-cost); // Reembolso
+      await useCredits(-cost); 
+      toast({ title: "Error de IA", description: e.message.includes("AI not configured") ? "Error de configuración. Revisa tus claves API." : "El servicio de IA falló.", variant: "destructive" });
     } finally {
-      setIsAiLoading(false);
+      setIsAiLoading(false); // <--- SOLUCIÓN: ASEGURA QUE SE LIMPIE EL ESTADO
     }
   };
 
@@ -254,7 +270,7 @@ const ImageEditor = () => {
                   <Input 
                     value={aiPrompt} 
                     onChange={(e) => setAiPrompt(e.target.value)} 
-                    placeholder="Ej: 'Hazlo más oscuro' o 'Un dragón neón'" 
+                    placeholder="Ej: 'Hazlo oscuro' o 'Un dragón neón'" 
                     className="bg-black/40 border-purple-500/30 text-white mb-3"
                   />
                   

@@ -4,10 +4,10 @@ import { Helmet } from "react-helmet-async";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea'; // Usar textarea para descripciones largas
+import { Textarea } from '@/components/ui/textarea';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useAuth } from '@/contexts/AuthContext';
-import { Upload, Plus, Trash2, Play, Pause, Wand2, Sparkles, Download, Loader2, Save, Image as ImageIcon } from 'lucide-react';
+import { Plus, Play, Pause, Wand2, Sparkles, Download, Loader2, Save, Image as ImageIcon } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { openai, handleAIError } from '@/lib/ai';
@@ -21,12 +21,10 @@ const VideoCreator = () => {
   const [images, setImages] = useState([]);
   const [projectName, setProjectName] = useState('');
   
-  // AI Config
   const [aiPrompt, setAiPrompt] = useState('');
   const [aiBaseImage, setAiBaseImage] = useState(null); 
   const [isAiLoading, setIsAiLoading] = useState(false);
 
-  // Render Config
   const [selectedTransition, setSelectedTransition] = useState('Fade');
   const [durationPerSlide, setDurationPerSlide] = useState(2);
   const [isRendering, setIsRendering] = useState(false);
@@ -53,7 +51,6 @@ const VideoCreator = () => {
     return () => clearInterval(interval);
   }, [isPlaying, images, durationPerSlide]);
 
-  // --- 1. IA: DIRECTOR DE VIDEO (IMAGEN + TEXTO) ---
   const handleAiBaseImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -70,15 +67,24 @@ const VideoCreator = () => {
     }
 
     const creditCost = 5;
+    
+    if (!user) {
+        toast({ title: "Acceso denegado", description: "Debes iniciar sesión para usar la IA.", variant: "destructive" });
+        return;
+    }
+
     const success = await useCredits(creditCost);
     if (!success) {
-      toast({ title: "Sin Créditos", variant: "destructive" });
+      toast({ title: "Sin Créditos", description: "Recarga créditos para usar la IA.", variant: "destructive" });
       return;
     }
 
     setIsAiLoading(true);
     try {
-      if (!openai) throw new Error("AI not configured");
+      if (!openai) {
+        await useCredits(-creditCost); 
+        throw new Error("AI not configured. Check VITE_OPENAI_API_KEY in .env");
+      }
       
       let messages = [];
       
@@ -115,12 +121,12 @@ const VideoCreator = () => {
     } catch (error) {
       handleAIError(error);
       await useCredits(-creditCost);
+      toast({ title: "Error de IA", description: error.message.includes("AI not configured") ? "Error de configuración. Revisa tus claves API." : "El servicio de IA falló.", variant: "destructive" });
     } finally {
-      setIsAiLoading(false);
+      setIsAiLoading(false); // <--- SOLUCIÓN: ASEGURA QUE SE LIMPIE EL ESTADO
     }
   };
 
-  // --- 2. RENDER Y NUBE (Con cobro) ---
   const handleCreateVideo = async () => {
     if (images.length === 0) return;
     if (!projectName.trim()) {
@@ -165,9 +171,9 @@ const VideoCreator = () => {
       }
     } catch (error) {
       if (user) await useCredits(-renderCost);
-      toast({ title: "Error", description: "Falló el renderizado.", variant: "destructive" });
+      toast({ title: "Error", description: "Falló el renderizado. Créditos reembolsados.", variant: "destructive" });
     } finally {
-      setIsRendering(false);
+      setIsRendering(false); // <--- SOLUCIÓN: ASEGURA QUE SE LIMPIE EL ESTADO
     }
   };
 
@@ -204,7 +210,6 @@ const VideoCreator = () => {
               </div>
               
               <div className="grid md:grid-cols-3 gap-4">
-                {/* 1. Subir Imagen Base */}
                 <div 
                   onClick={() => aiImageInputRef.current.click()}
                   className="border-2 border-dashed border-indigo-500/30 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-indigo-500/10 h-32 relative overflow-hidden group"
@@ -219,7 +224,6 @@ const VideoCreator = () => {
                   )}
                 </div>
 
-                {/* 2. Prompt y Botón */}
                 <div className="md:col-span-2 flex flex-col gap-3">
                   <Textarea 
                     value={aiPrompt} 
