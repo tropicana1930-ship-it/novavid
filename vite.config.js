@@ -8,5 +8,12 @@ export default defineConfig({
     alias: {
       "@": path.resolve(__dirname, "src")
     }
-  }
+  },
+  // 🛡️ Esto habilita FFmpeg en el navegador
+  server: {
+    headers: {
+      "Cross-Origin-Embedder-Policy": "require-corp",
+      "Cross-Origin-Opener-Policy": "same-origin",
+    },
+  },
 });
