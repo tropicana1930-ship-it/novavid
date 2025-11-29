@@ -4,16 +4,25 @@ import path from "path";
 
 export default defineConfig({
   plugins: [react()],
+
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "src")
-    }
+      "@": path.resolve(__dirname, "src"),
+    },
   },
-  // 🛡️ Esto habilita FFmpeg en el navegador
+
   server: {
+    host: true,
+    port: 3000,
+    strictPort: true,
     headers: {
       "Cross-Origin-Embedder-Policy": "require-corp",
       "Cross-Origin-Opener-Policy": "same-origin",
     },
+  },
+
+  build: {
+    outDir: "dist",
+    emptyOutDir: true,
   },
 });

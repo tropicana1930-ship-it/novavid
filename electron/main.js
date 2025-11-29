@@ -10,8 +10,8 @@ function createWindow() {
     height: 800,
     webPreferences: {
       preload: path.join(process.cwd(), "electron", "preload.js"),
-      contextIsolation: true
-    }
+      contextIsolation: true,
+    },
   });
 
   if (isDev) {
@@ -29,9 +29,7 @@ function createWindow() {
 app.on("ready", createWindow);
 
 app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") {
-    app.quit();
-  }
+  if (process.platform !== "darwin") app.quit();
 });
 
 app.on("activate", () => {
